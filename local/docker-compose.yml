@@ -18,6 +18,22 @@ services:
       retries: 5
       start_period: 60s
   
+  rmq:
+    container_name: rmq
+    image: rabbitmq:4.0-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - falc
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rmq.rule=Host(`falc.rmq.local`)"
+      - "traefik.http.services.rmq.loadbalancer.server.port=15672"
+  
   traefik:
     container_name: traefik
     image: traefik:v3.2
