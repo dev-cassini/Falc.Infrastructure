@@ -1,17 +1,48 @@
 version: "3.5"
 
 services:
-    postgres:
-        container_name: postgres
-        image: postgres
-        ports:
-            - "5432:5432"
-        environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: password
-        networks:
-            - falc-local
-
+  postgres:
+    container_name: postgres
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    networks:
+      - falc
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "db_prod" ]
+      interval: 5s
+      timeout: 60s
+      retries: 5
+      start_period: 60s
+  
+  traefik:
+    container_name: traefik
+    image: traefik:v3.2
+    environment:
+      - TRAEFIK_PING=true
+    command: 
+      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/traefik.toml
+    networks:
+      falc:
+        aliases:
+            - falc.sts.local
+            - falc.admin.local
+            - falc.admin-api.local
 networks:
-    falc-local:
-        driver: bridge
+  falc:
+    external: true
