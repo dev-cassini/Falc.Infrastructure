@@ -31,34 +31,31 @@ services:
       - falc
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.rmq.rule=Host(`falc.rmq.local`)"
+      - "traefik.http.routers.rmq.rule=Host(`rmq.falc.local`)"
       - "traefik.http.services.rmq.loadbalancer.server.port=15672"
   
   traefik:
     container_name: traefik
     image: traefik:v3.2
-    environment:
-      - TRAEFIK_PING=true
-    command: 
-      - "--log.level=DEBUG"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
     ports:
       - 80:80
       - 443:443
       - 8080:8080
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik.toml:/traefik.toml
+      # Map the static configuration into the container
+      - ./traefik-static.yml:/etc/traefik/traefik.yml:ro
+      # Map the dynamic configuration into the container
+      - ./traefik-dynamic.yml:/etc/traefik/dynamic.yml:ro
+      # Map the certificats into the container
+      - ./certs:/etc/certs:ro
     networks:
       falc:
         aliases:
-            - falc.sts.local
-            - falc.admin.local
-            - falc.admin-api.local
+          - sts.falc.local
+          - admin.falc.local
+          - admin-api.falc.local
+
 networks:
   falc:
     external: true
