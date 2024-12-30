@@ -32,7 +32,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.rmq.rule=Host(`rmq.falc.local`)"
+      - "traefik.http.routers.rmq.tls=true"
       - "traefik.http.services.rmq.loadbalancer.server.port=15672"
+      - "traefik.tags=falc"
+      - "traefik.docker.network=falc"
   
   traefik:
     container_name: traefik
@@ -55,6 +58,7 @@ services:
           - sts.falc.local
           - admin.falc.local
           - admin-api.falc.local
+          - rmq.falc.local
 
 networks:
   falc:
